@@ -1,0 +1,111 @@
+﻿
+@model ProductVM
+
+<form method="post" class="border p-3 mt-4" enctype="multipart/form-data">
+	<input asp-for="Product.Id" hidden/>
+	<input asp-for="Product.ImageUrl" hidden/>
+	@* <div asp-validation-summary="All"></div> *@
+	<div class="row">
+		<div class="col-10">
+			<div class="pb-2">
+				<h2 class="text-center">@(Model.Product.Id != 0 ? "Update" : "Create") product</h2>
+				<hr />
+			</div>
+			<div class="mb-3 p-1">
+				<label asp-for="Product.Title">Title</label>
+				<input asp-for="Product.Title" type="text" class="form-control" />
+				<span class="text-danger" asp-validation-for="Product.Title"></span>
+			</div>
+			<div class="mb-3 p-1">
+				<label asp-for="Product.Description"></label>
+				<textarea asp-for="Product.Description" type="text" class="form-control"></textarea>
+			</div>
+			<div class="mb-3 p-1">
+				<label asp-for="Product.ISBN"></label>
+				<input asp-for="Product.ISBN" type="text" class="form-control" />
+				<span class="text-danger" asp-validation-for="Product.ISBN"></span>
+			</div>
+			<div class="mb-3 p-1">
+				<label asp-for="Product.Author"></label>
+				<input asp-for="Product.Author" type="text" class="form-control" />
+				<span class="text-danger" asp-validation-for="Product.Author"></span>
+			</div>
+			<div class="mb-3 p-1">
+				<label asp-for="Product.ListPrice"></label>
+				<input asp-for="Product.ListPrice" type="text" class="form-control" />
+				<span class="text-danger" asp-validation-for="Product.ListPrice"></span>
+			</div>
+			<div class="mb-3 p-1">
+				<label asp-for="Product.Price"></label>
+				<input asp-for="Product.Price" type="text" class="form-control" />
+				<span class="text-danger" asp-validation-for="Product.Price"></span>
+			</div>
+			<div class="mb-3 p-1">
+				<label asp-for="Product.Price50"></label>
+				<input asp-for="Product.Price50" type="text" class="form-control" />
+				<span class="text-danger" asp-validation-for="Product.Price50"></span>
+			</div>
+			<div class="mb-3 p-1">
+				<label asp-for="Product.Price100"></label>
+				<input asp-for="Product.Price100" type="text" class="form-control" />
+				<span class="text-danger" asp-validation-for="Product.Price100"></span>
+			</div>
+			<div class="mb-3 p-1">
+				<label asp-for="Product.	CategoryId"></label>
+				<select asp-for="Product.CategoryId" asp-items="@Model.CategoryList" class="form-control">
+					<option disabled selected>--Select--</option>
+				</select>
+				<span class="text-danger" asp-validation-for="Product.CategoryId"></span>
+			</div>
+			<div class="mb-3 p-1">
+				<label asp-for="Product.ImageUrl"></label>
+				<input type="file" name="file" asp-for="Product.ImageUrl" class="form-control" />
+			</div>
+			<div class="row">
+				<div class="col-6 col-md-3">
+					@if (Model.Product.Id != 0)
+					{
+						<input type="submit" class="form-control btn btn-primary" value="Update" />
+					}
+					else
+					{
+						<input type="submit" class="form-control btn btn-primary" value="Create" />
+					}
+				</div>
+				<div class="col-6 col-md-3">
+					<a asp-controller="Product" asp-action="index" class="btn btn-outline-secondary form-control">Return</a>
+				</div>
+			</div>
+		</div>
+		<div class="col-2">
+			<img src="@Model.Product.ImageUrl" width="100%" style="border-radius:5px;border:1px solid #bbb9b9"/>
+		</div>
+	</div>
+</form>
+
+@section Scripts
+{
+	<script>
+		tinymce.init({
+			selector: 'textarea',
+			plugins: [
+				// Core editing features
+				'anchor', 'autolink', 'charmap', 'codesample', 'emoticons', 'image', 'link', 'lists', 'media', 'searchreplace', 'table', 'visualblocks', 'wordcount',
+				// Your account includes a free trial of TinyMCE premium features
+				// Try the most popular premium features until Mar 16, 2025:
+				'checklist', 'mediaembed', 'casechange', 'export', 'formatpainter', 'pageembed', 'a11ychecker', 'tinymcespellchecker', 'permanentpen', 'powerpaste', 'advtable', 'advcode', 'editimage', 'advtemplate', 'ai', 'mentions', 'tinycomments', 'tableofcontents', 'footnotes', 'mergetags', 'autocorrect', 'typography', 'inlinecss', 'markdown', 'importword', 'exportword', 'exportpdf'
+			],
+			toolbar: 'undo redo | blocks fontfamily fontsize | bold italic underline strikethrough | image table mergetags | addcomment showcomments | spellcheckdialog a11ycheck typography | align lineheight | checklist numlist bullist indent outdent | emoticons charmap | removeformat',
+			tinycomments_mode: 'embedded',
+			tinycomments_author: 'Author name',
+			mergetags_list: [
+				{ value: 'First.Name', title: 'First Name' },
+				{ value: 'Email', title: 'Email' },
+			],
+			ai_request: (request, respondWith) => respondWith.string(() => Promise.reject('See docs to implement AI Assistant')),
+		});
+	</script>
+	@{
+		<partial name="_ValidationScriptsPartial" />
+	}
+}
