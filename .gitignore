@@ -62,7 +62,7 @@ BenchmarkDotNet.Artifacts/
 project.lock.json
 project.fragment.lock.json
 artifacts/
-BookWeb/appsetting.json
+BookWeb/appsettings.json
 
 # ASP.NET Scaffolding
 ScaffoldingReadMe.txt
