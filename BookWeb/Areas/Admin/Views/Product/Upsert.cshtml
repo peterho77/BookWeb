@@ -1,5 +1,4 @@
-﻿
-@model ProductVM
+﻿@model ProductVM
 
 <form method="post" class="border p-3 mt-4" enctype="multipart/form-data">
 	<input asp-for="Product.Id" hidden/>
@@ -14,7 +13,7 @@
 			<div class="mb-3 p-1">
 				<label asp-for="Product.Title">Title</label>
 				<input asp-for="Product.Title" type="text" class="form-control" />
-				<span class="text-danger" asp-validation-for="Product.Title"></span>
+				<span class="invalid-feedback text-danger" asp-validation-for="Product.Title"></span>
 			</div>
 			<div class="mb-3 p-1">
 				<label asp-for="Product.Description"></label>
@@ -106,6 +105,6 @@
 		});
 	</script>
 	@{
-		<partial name="_ValidationScriptsPartial" />
+		<partial name="~/Views/Shared/_ValidationScriptsPartial.cshtml" />
 	}
 }

@@ -19,7 +19,7 @@ namespace Book.DataAccess.Repository
 
         public void Update(Company company)
         {
-            
+            _db.Companies.Update(company);
         }
     }
 }

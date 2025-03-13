@@ -4,6 +4,7 @@ using Book.DataAccess.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Book.DataAccess.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250312140828_addCompanyTable")]
+    partial class addCompanyTable
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -87,32 +90,6 @@ namespace Book.DataAccess.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("Companies");
-
-                    b.HasData(
-                        new
-                        {
-                            Id = 1,
-                            City = "Vũng Tàu",
-                            Name = "FKT",
-                            PhoneNumber = "113",
-                            StreetAddress = "12 Đô Lương"
-                        },
-                        new
-                        {
-                            Id = 2,
-                            City = "Long Hải",
-                            Name = "Telsa",
-                            PhoneNumber = "114",
-                            StreetAddress = "141A Trần Phú"
-                        },
-                        new
-                        {
-                            Id = 3,
-                            City = "Hồ Chí Minh",
-                            Name = "F88",
-                            PhoneNumber = "115",
-                            StreetAddress = "324 Trương Văn Bang"
-                        });
                 });
 
             modelBuilder.Entity("Book.Models.Product", b =>

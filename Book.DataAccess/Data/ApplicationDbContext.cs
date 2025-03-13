@@ -27,7 +27,13 @@ namespace Book.DataAccess.Data
 				new Category() { Id = 3, Name = "Romance", DisplayOrder = 3 }
 			);
 
-            modelBuilder.Entity<Product>().HasData(
+			modelBuilder.Entity<Company>().HasData(
+				new Company() { Id = 1, Name = "FKT", StreetAddress = "12 Đô Lương", City="Vũng Tàu" , PhoneNumber="113"},
+				new Company() { Id = 2, Name = "Telsa", StreetAddress = "141A Trần Phú", City = "Long Hải", PhoneNumber = "114" },
+				new Company() { Id = 3, Name = "F88", StreetAddress = "324 Trương Văn Bang", City = "Hồ Chí Minh", PhoneNumber = "115" }
+			);
+
+			modelBuilder.Entity<Product>().HasData(
                     new Product
                     {
                         Id = 1,
