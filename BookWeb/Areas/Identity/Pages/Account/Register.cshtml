@@ -23,15 +23,41 @@
                 <span asp-validation-for="Input.Password" class="text-danger"></span>
             </div>
             <div class="form-floating mb-3">
-                <input asp-for="Input.ConfirmPassword" class="form-control" autocomplete="new-password" aria-required="true" placeholder="password" />
+                <input asp-for="Input.ConfirmPassword" class="form-control" autocomplete="new-password" aria-required="true" placeholder="confirm password" />
                 <label asp-for="Input.ConfirmPassword">Confirm Password</label>
                 <span asp-validation-for="Input.ConfirmPassword" class="text-danger"></span>
             </div>
             <div class="form-floating mb-3">
-                <select asp-for="Input.Role" asp-items="@Model.Input.RoleList" class="form-select" id="floatingSelect">
+                <input asp-for="Input.Name" class="form-control" autocomplete="username" aria-required="true" placeholder="name" />
+                <label asp-for="Input.Name">Name</label>
+                <span asp-validation-for="Input.Name" class="text-danger"></span>
+            </div>
+            <div class="form-floating mb-3">
+                <input asp-for="Input.StreetAdress" class="form-control" autocomplete="username" aria-required="true" placeholder="street adress" />
+                <label asp-for="Input.StreetAdress">Street adress</label>
+                <span asp-validation-for="Input.StreetAdress" class="text-danger"></span>
+            </div>
+            <div class="form-floating mb-3">
+                <input asp-for="Input.City" class="form-control" autocomplete="username" aria-required="true" placeholder="city" />
+                <label asp-for="Input.City">City</label>
+                <span asp-validation-for="Input.City" class="text-danger"></span>
+            </div>
+            <div class="form-floating mb-3">
+                <input asp-for="Input.PhoneNumber" class="form-control" autocomplete="username" aria-required="true" placeholder="phone number" />
+                <label asp-for="Input.PhoneNumber">Phone number</label>
+                <span asp-validation-for="Input.PhoneNumber" class="text-danger"></span>
+            </div>
+            <div class="form-floating mb-3">
+                <select asp-for="Input.Role" asp-items="@Model.Input.RoleList" class="form-select">
                     <option disabled selected>--Click here--</option>
                 </select>
-                <label for="floatingSelect">Select role</label>
+                <label asp-for="Input.Role">Select role</label>
+            </div>
+            <div class="form-floating mb-3" id="form-company" style="display:none">
+                <select asp-for="Input.CompanyId" asp-items="@Model.Input.CompanyList" class="form-select">
+                    <option disabled selected>--Click here--</option>
+                </select>
+                <label asp-for="Input.CompanyId">Select company</label>
             </div>
             <button id="registerSubmit" type="submit" class="w-100 btn btn-lg btn-primary">Register</button>
         </form>
@@ -43,25 +69,25 @@
             @{
                 if ((Model.ExternalLogins?.Count ?? 0) == 0)
                 {
-                    <div>
-                        <p>
-                            There are no external authentication services configured. See this <a href="https://go.microsoft.com/fwlink/?LinkID=532715">article
-                            about setting up this ASP.NET application to support logging in via external services</a>.
-                        </p>
-                    </div>
+                        <div>
+                            <p>
+                                There are no external authentication services configured. See this <a href="https://go.microsoft.com/fwlink/?LinkID=532715">article
+                                about setting up this ASP.NET application to support logging in via external services</a>.
+                            </p>
+                        </div>
                 }
                 else
                 {
-                    <form id="external-account" asp-page="./ExternalLogin" asp-route-returnUrl="@Model.ReturnUrl" method="post" class="form-horizontal">
-                        <div>
-                            <p>
-                                @foreach (var provider in Model.ExternalLogins!)
+                        <form id="external-account" asp-page="./ExternalLogin" asp-route-returnUrl="@Model.ReturnUrl" method="post" class="form-horizontal">
+                            <div>
+                                <p>
+                                    @foreach (var provider in Model.ExternalLogins!)
                                 {
-                                    <button type="submit" class="btn btn-primary" name="provider" value="@provider.Name" title="Log in using your @provider.DisplayName account">@provider.DisplayName</button>
+                                        <button type="submit" class="btn btn-primary" name="provider" value="@provider.Name" title="Log in using your @provider.DisplayName account">@provider.DisplayName</button>
                                 }
-                            </p>
-                        </div>
-                    </form>
+                                </p>
+                            </div>
+                        </form>
                 }
             }
         </section>
@@ -70,4 +96,18 @@
 
 @section Scripts {
     <partial name="_ValidationScriptsPartial" />
+
+    <script>
+        $('#Input_Role').change(function(){
+            var selectionText = $('#Input_Role Option:selected').text();
+            if (selectionText == 'Company')
+            {
+                $('#form-company').show();
+            }
+            else
+            {
+                $('#form-company').hide();
+            }
+        })
+    </script>
 }
