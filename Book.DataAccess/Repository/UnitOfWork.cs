@@ -14,6 +14,8 @@ namespace Book.DataAccess.Repository
 		public ICategoryRepository category { get; private set; }
 		public IProductRepository product { get; private set; }
 		public ICompanyRepository company { get; private set; }
+		public IShoppingCartRepository shoppingCart { get; private set; }
+		public IApplicationUserRepository applicationUser { get; private set; }
 
 		public UnitOfWork(ApplicationDbContext db)
 		{
@@ -21,6 +23,8 @@ namespace Book.DataAccess.Repository
 			category = new CategoryRepository(_db);
 			product = new ProductRepository(_db);
 			company = new CompanyRepository(_db);
+			shoppingCart = new ShoppingCartRepository(_db);
+			applicationUser = new ApplicationUserRepository(_db);
 		}
 
 		public void Save()
