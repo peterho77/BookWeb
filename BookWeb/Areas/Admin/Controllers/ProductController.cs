@@ -14,16 +14,16 @@ namespace BookWeb.Areas.Admin.Controllers
     [Authorize(Roles = SD.Role_Admin)]
     public class ProductController : Controller
     {
-        private readonly IUnitOfWork _db;
+        private readonly IUnitOfWork _unitOfWork;
         private readonly IWebHostEnvironment _webHostEnvironment;
-        public ProductController(IUnitOfWork db, IWebHostEnvironment webHostEnvironment)
+        public ProductController(IUnitOfWork unitOfWork, IWebHostEnvironment webHostEnvironment)
         {
-            _db = db;
+            _unitOfWork = unitOfWork;
             _webHostEnvironment = webHostEnvironment;
         }
         public IActionResult Index()
         {
-			List<Product> product = _db.product.GetAll(includeProperties:"category").ToList();
+			List<Product> product = _unitOfWork.product.GetAll(includeProperties:"category").ToList();
 
 			return View(product);
         }
@@ -35,7 +35,7 @@ namespace BookWeb.Areas.Admin.Controllers
 
             ProductVM productVM = new ProductVM()
             {
-                CategoryList = _db.category.GetAll().Select(u => new SelectListItem
+                CategoryList = _unitOfWork.category.GetAll().Select(u => new SelectListItem
 				{
 					Text = u.Name,
 					Value = u.Id.ToString()
@@ -48,7 +48,7 @@ namespace BookWeb.Areas.Admin.Controllers
             }
             else
             {
-                productVM.Product = _db.product.Get(u => u.Id == id);
+                productVM.Product = _unitOfWork.product.Get(u => u.Id == id);
                 return View(productVM);
             }
         }
@@ -82,14 +82,14 @@ namespace BookWeb.Areas.Admin.Controllers
 
                 if(productVM.Product.Id == 0)
                 {
-                    _db.product.Add(productVM.Product);
+                    _unitOfWork.product.Add(productVM.Product);
                 }
                 else
                 {
-                    _db.product.Update(productVM.Product);
+                    _unitOfWork.product.Update(productVM.Product);
                 }
                 TempData["success"] = "Product created successfully.";
-                _db.Save();
+                _unitOfWork.Save();
                 return RedirectToAction("Index");
             }
             return View();
@@ -100,7 +100,7 @@ namespace BookWeb.Areas.Admin.Controllers
         [HttpGet]
         public IActionResult GetAll()
         {
-            List<Product> productList = _db.product.GetAll(includeProperties: "category").ToList();
+            List<Product> productList = _unitOfWork.product.GetAll(includeProperties: "category").ToList();
 
             return Json(new { data = productList });
         }
@@ -108,7 +108,7 @@ namespace BookWeb.Areas.Admin.Controllers
         [HttpDelete]
         public IActionResult Delete(int? id)
         {
-            Product? product = _db.product.Get(obj => obj.Id == id);
+            Product? product = _unitOfWork.product.Get(obj => obj.Id == id);
             if (product == null)
             {
                 return Json(new { icon = "error", message = "Error while deleting" });
@@ -122,8 +122,8 @@ namespace BookWeb.Areas.Admin.Controllers
                     System.IO.File.Delete(oldImagePath);
                 }
             }
-            _db.product.Remove(product);
-            _db.Save();
+            _unitOfWork.product.Remove(product);
+            _unitOfWork.Save();
             return Json(new { icon = "success", message = "Delete sucessfully" });
         }
 
