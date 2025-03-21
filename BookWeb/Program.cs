@@ -8,6 +8,9 @@ using Book.Utility;
 using Microsoft.AspNetCore.Identity.UI.Services;
 using System;
 using Microsoft.Extensions.Options;
+using Book.Models.Vnpay.Services;
+using Book.Models.Vnpay;
+
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -26,6 +29,8 @@ builder.Services.ConfigureApplicationCookie(options =>
 
 builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
 builder.Services.AddScoped<IEmailSender, EmailSender>();
+builder.Services.AddScoped<IVnPayService, VnPayService>();
+
 builder.Services.AddRazorPages();
 var app = builder.Build();
 

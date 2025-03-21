@@ -1,6 +1,8 @@
 ﻿using Book.DataAccess.Repository.IRepository;
 using Book.Models;
 using Book.Models.ViewModels;
+using Book.Models.Vnpay;
+using Book.Models.Vnpay.Services;
 using Book.Utility;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -14,11 +16,13 @@ namespace BookWeb.Areas.Customer.Controllers
     public class CartController : Controller
     {
         private readonly IUnitOfWork _unitOfWork;
-        [BindProperty]
+		private readonly IVnPayService _vnPayService;
+		[BindProperty]
         public ShoppingCartVM ShoppingCartVM {  get; set; }
-        public CartController(IUnitOfWork unitOfWork)
+        public CartController(IUnitOfWork unitOfWork, IVnPayService vnPayService)
         {
             _unitOfWork = unitOfWork;
+            _vnPayService = vnPayService;
         }
         public IActionResult Index()
         {
@@ -125,10 +129,45 @@ namespace BookWeb.Areas.Customer.Controllers
 			return View(ShoppingCartVM);
 		}
 
-        public IActionResult OrderConfirmation(int id)
+        public IActionResult OrderConfirmation(ShoppingCartVM shoppingCartVM)
         {
-            return View(id  );
+
+			var claimsIdentity = (ClaimsIdentity)User.Identity;
+			var userId = claimsIdentity.FindFirst(ClaimTypes.NameIdentifier).Value;
+
+			shoppingCartVM.ShoppingCartList = _unitOfWork.shoppingCart.GetAll(u => u.ApplicationUserId == userId, includeProperties: "Product");
+
+			foreach (var cart in shoppingCartVM.ShoppingCartList)
+			{
+				cart.Price = GetPriceBasedOnQuantity(cart);
+				shoppingCartVM.OrderHeader.OrderTotal += cart.Price * cart.Count;
+			}
+
+            PaymentInformationModel model = new()
+            {
+                Amount = shoppingCartVM.OrderHeader.OrderTotal,
+                Name = shoppingCartVM.OrderHeader.Name
+            };
+
+			return View(model);
         }
+
+		//Thanh toán Vnpay
+		public IActionResult CreatePaymentUrl(PaymentInformationModel model)
+		{
+			var url = _vnPayService.CreatePaymentUrl(model, HttpContext);
+
+			return Redirect(url);
+		}
+
+		public IActionResult PaymentCallback()
+		{
+			var response = _vnPayService.PaymentExecute(Request.Query);
+
+			return Json(response);
+		}
+
+        //
 
 		public IActionResult plus(int cartId)
         {
@@ -159,6 +198,13 @@ namespace BookWeb.Areas.Customer.Controllers
             _unitOfWork.shoppingCart.Remove(cartFromDb);
             _unitOfWork.Save();
             return RedirectToAction(nameof(Index));
+        }
+
+        //Thanh toán VnPay
+        public IActionResult VnpayPaymentConfirm()
+        {
+
+            return View();
         }
 
         private double GetPriceBasedOnQuantity(ShoppingCart shoppingCart)   

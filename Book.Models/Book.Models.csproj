@@ -7,7 +7,11 @@
   </PropertyGroup>
 
   <ItemGroup>
-	  <FrameWorkReference Include="Microsoft.AspNetCore.App"/>
+	  <FrameWorkReference Include="Microsoft.AspNetCore.App" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="VNPAY.NET" Version="8.5.0" />
   </ItemGroup>
 
 </Project>
