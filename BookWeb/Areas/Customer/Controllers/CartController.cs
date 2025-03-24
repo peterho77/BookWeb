@@ -6,6 +6,7 @@ using Book.Models.Vnpay.Services;
 using Book.Utility;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Stripe.Checkout;
 using System.Runtime.CompilerServices;
 using System.Security.Claims;
 
@@ -120,37 +121,48 @@ namespace BookWeb.Areas.Customer.Controllers
 
 			if (user.CompanyId.GetValueOrDefault() == 0)
 			{
-				//it is a regular customer account
+                //it is a regular customer account
                 //stripe logic
-				ShoppingCartVM.OrderHeader.PaymentStatus = SD.PaymentStatusPending;
-				ShoppingCartVM.OrderHeader.OrderStatus = SD.StatusPending;
+                var domain = "https://localhost:7166/";
+                var options = new SessionCreateOptions
+                {
+                    SuccessUrl = domain + $"customer/cart/OrderConfirmation?id={ShoppingCartVM.OrderHeader.Id}",
+                    CancelUrl = domain + "customer/cart/index",
+                    LineItems = new List<SessionLineItemOptions>(),
+                    Mode = "payment",
+                };
+
+                foreach(var item in ShoppingCartVM.ShoppingCartList)
+                {
+                    var sessionLineItem = new SessionLineItemOptions
+                    {
+                        PriceData = new SessionLineItemPriceDataOptions
+                        {
+                            UnitAmount = (long)(item.Price * 100),
+                            Currency = "usd",
+                            ProductData = new SessionLineItemPriceDataProductDataOptions
+                            {
+                                Name = item.Product.Title
+                            }
+                        },
+                        Quantity = item.Count
+                    }; 
+                    options.LineItems.Add(sessionLineItem);
+				}
+
+				var service = new SessionService();
+				Session session = service.Create(options);
+                _unitOfWork.orderHeader.UpdateStripePaymentId(ShoppingCartVM.OrderHeader.Id, session.Id, session.PaymentIntentId);
+                _unitOfWork.Save();
+
+                Response.Headers.Add("Location",session.Url);
+                return new StatusCodeResult(303);
 			}
 
 			return View(ShoppingCartVM);
 		}
 
-        public IActionResult OrderConfirmation(ShoppingCartVM shoppingCartVM)
-        {
-
-			var claimsIdentity = (ClaimsIdentity)User.Identity;
-			var userId = claimsIdentity.FindFirst(ClaimTypes.NameIdentifier).Value;
-
-			shoppingCartVM.ShoppingCartList = _unitOfWork.shoppingCart.GetAll(u => u.ApplicationUserId == userId, includeProperties: "Product");
-
-			foreach (var cart in shoppingCartVM.ShoppingCartList)
-			{
-				cart.Price = GetPriceBasedOnQuantity(cart);
-				shoppingCartVM.OrderHeader.OrderTotal += cart.Price * cart.Count;
-			}
-
-            PaymentInformationModel model = new()
-            {
-                Amount = shoppingCartVM.OrderHeader.OrderTotal,
-                Name = shoppingCartVM.OrderHeader.Name
-            };
-
-			return View(model);
-        }
+        
 
 		//Thanh toán Vnpay
 		public IActionResult CreatePaymentUrl(PaymentInformationModel model)
@@ -167,7 +179,55 @@ namespace BookWeb.Areas.Customer.Controllers
 			return Json(response);
 		}
 
-        //
+        public IActionResult OrderConfirmation(int id)
+        {
+            OrderHeader orderHeader = _unitOfWork.orderHeader.Get(u => u.Id == id, includeProperties : "ApplicationUser");
+
+            if(orderHeader.PaymentStatus != SD.PaymentStatusDelayedPayment)
+            {
+                //this is an order by customer
+                var service = new SessionService();
+                Session session = service.Get(orderHeader.SessionId);
+
+                if (session.PaymentStatus.ToLower() == "paid")
+                {
+                    _unitOfWork.orderHeader.UpdateStripePaymentId(id, session.Id, session.PaymentIntentId);
+                    _unitOfWork.orderHeader.UpdateStatus(id, SD.StatusApproved, SD.PaymentStatusApproved);
+                    _unitOfWork.Save();
+                }
+            }
+
+            List<ShoppingCart> shoppingCarts = _unitOfWork.shoppingCart.GetAll(u=>u.ApplicationUserId == orderHeader.ApplicationUserId).ToList();
+            _unitOfWork.shoppingCart.RemoveRange(shoppingCarts);
+            _unitOfWork.Save();
+
+            return View(id);
+        }
+
+		public IActionResult VnpayPaymentInfor(ShoppingCartVM shoppingCartVM)
+		{
+
+			var claimsIdentity = (ClaimsIdentity)User.Identity;
+			var userId = claimsIdentity.FindFirst(ClaimTypes.NameIdentifier).Value;
+
+			shoppingCartVM.ShoppingCartList = _unitOfWork.shoppingCart.GetAll(u => u.ApplicationUserId == userId, includeProperties: "Product");
+
+			foreach (var cart in shoppingCartVM.ShoppingCartList)
+			{
+				cart.Price = GetPriceBasedOnQuantity(cart);
+				shoppingCartVM.OrderHeader.OrderTotal += cart.Price * cart.Count;
+			}
+
+			PaymentInformationModel model = new()
+			{
+				Amount = shoppingCartVM.OrderHeader.OrderTotal,
+				Name = shoppingCartVM.OrderHeader.Name
+			};
+
+			return View(model);
+		}
+
+		//
 
 		public IActionResult plus(int cartId)
         {
@@ -198,13 +258,6 @@ namespace BookWeb.Areas.Customer.Controllers
             _unitOfWork.shoppingCart.Remove(cartFromDb);
             _unitOfWork.Save();
             return RedirectToAction(nameof(Index));
-        }
-
-        //Thanh toán VnPay
-        public IActionResult VnpayPaymentConfirm()
-        {
-
-            return View();
         }
 
         private double GetPriceBasedOnQuantity(ShoppingCart shoppingCart)   

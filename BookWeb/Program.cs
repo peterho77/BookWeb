@@ -1,4 +1,4 @@
-using Book.DataAccess.Data;
+﻿using Book.DataAccess.Data;
 using Book.DataAccess.Repository;
 using Book.DataAccess.Repository.IRepository;
 using Microsoft.EntityFrameworkCore;
@@ -10,6 +10,7 @@ using System;
 using Microsoft.Extensions.Options;
 using Book.Models.Vnpay.Services;
 using Book.Models.Vnpay;
+using Stripe;
 
 
 var builder = WebApplication.CreateBuilder(args);
@@ -29,7 +30,12 @@ builder.Services.ConfigureApplicationCookie(options =>
 
 builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
 builder.Services.AddScoped<IEmailSender, EmailSender>();
+
+// Thêm phương thức thanh toán Vnpay
 builder.Services.AddScoped<IVnPayService, VnPayService>();
+
+//Cấu hình Stripe key cho lớp StripeSettings
+builder.Services.Configure<StripeSettings>(builder.Configuration.GetSection("Stripe"));
 
 builder.Services.AddRazorPages();
 var app = builder.Build();
@@ -44,6 +50,9 @@ if (!app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 app.UseStaticFiles();
+
+//Thêm Api key cho thư viện Stripe.net
+StripeConfiguration.ApiKey = builder.Configuration.GetSection("Stripe:SecretKey").Get<string>();
 
 app.UseRouting();
 app.UseAuthentication();
