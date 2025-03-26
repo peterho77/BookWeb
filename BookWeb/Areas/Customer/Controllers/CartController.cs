@@ -119,6 +119,7 @@ namespace BookWeb.Areas.Customer.Controllers
 				_unitOfWork.Save();
 			}
 
+            //Thanh toán stripe
 			if (user.CompanyId.GetValueOrDefault() == 0)
 			{
                 //it is a regular customer account
@@ -162,28 +163,11 @@ namespace BookWeb.Areas.Customer.Controllers
 			return View(ShoppingCartVM);
 		}
 
-        
-
-		//Thanh toán Vnpay
-		public IActionResult CreatePaymentUrl(PaymentInformationModel model)
-		{
-			var url = _vnPayService.CreatePaymentUrl(model, HttpContext);
-
-			return Redirect(url);
-		}
-
-		public IActionResult PaymentCallback()
-		{
-			var response = _vnPayService.PaymentExecute(Request.Query);
-
-			return Json(response);
-		}
-
         public IActionResult OrderConfirmation(int id)
         {
-            OrderHeader orderHeader = _unitOfWork.orderHeader.Get(u => u.Id == id, includeProperties : "ApplicationUser");
+            OrderHeader orderHeader = _unitOfWork.orderHeader.Get(u => u.Id == id, includeProperties: "ApplicationUser");
 
-            if(orderHeader.PaymentStatus != SD.PaymentStatusDelayedPayment)
+            if (orderHeader.PaymentStatus != SD.PaymentStatusDelayedPayment)
             {
                 //this is an order by customer
                 var service = new SessionService();
@@ -197,37 +181,52 @@ namespace BookWeb.Areas.Customer.Controllers
                 }
             }
 
-            List<ShoppingCart> shoppingCarts = _unitOfWork.shoppingCart.GetAll(u=>u.ApplicationUserId == orderHeader.ApplicationUserId).ToList();
+            List<ShoppingCart> shoppingCarts = _unitOfWork.shoppingCart.GetAll(u => u.ApplicationUserId == orderHeader.ApplicationUserId).ToList();
             _unitOfWork.shoppingCart.RemoveRange(shoppingCarts);
             _unitOfWork.Save();
 
             return View(id);
         }
 
-		public IActionResult VnpayPaymentInfor(ShoppingCartVM shoppingCartVM)
+        //Thanh toán Vnpay
+        public IActionResult CreatePaymentUrl(PaymentInformationModel model)
+		{   
+			var url = _vnPayService.CreatePaymentUrl(model, HttpContext);
+
+			return Redirect(url);
+		}
+
+		public IActionResult PaymentCallback()
+		{
+			var response = _vnPayService.PaymentExecute(Request.Query);
+
+			return Json(response);
+		}
+
+		public IActionResult VnpayPaymentInfor()
 		{
 
 			var claimsIdentity = (ClaimsIdentity)User.Identity;
 			var userId = claimsIdentity.FindFirst(ClaimTypes.NameIdentifier).Value;
 
-			shoppingCartVM.ShoppingCartList = _unitOfWork.shoppingCart.GetAll(u => u.ApplicationUserId == userId, includeProperties: "Product");
+			ShoppingCartVM.ShoppingCartList = _unitOfWork.shoppingCart.GetAll(u => u.ApplicationUserId == userId, includeProperties: "Product");
 
-			foreach (var cart in shoppingCartVM.ShoppingCartList)
+			foreach (var cart in ShoppingCartVM.ShoppingCartList)
 			{
 				cart.Price = GetPriceBasedOnQuantity(cart);
-				shoppingCartVM.OrderHeader.OrderTotal += cart.Price * cart.Count;
+				ShoppingCartVM.OrderHeader.OrderTotal += cart.Price * cart.Count;
 			}
 
 			PaymentInformationModel model = new()
 			{
-				Amount = shoppingCartVM.OrderHeader.OrderTotal,
-				Name = shoppingCartVM.OrderHeader.Name
+				Amount = ShoppingCartVM.OrderHeader.OrderTotal,
+				Name = ShoppingCartVM.OrderHeader.Name
 			};
 
 			return View(model);
 		}
 
-		//
+		// Nút thêm trừ và xóa trong giỏ hàng
 
 		public IActionResult plus(int cartId)
         {
