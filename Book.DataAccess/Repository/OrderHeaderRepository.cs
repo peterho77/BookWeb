@@ -35,7 +35,7 @@ namespace Book.DataAccess.Repository
 			}
 		}
 
-		public void UpdateStripePaymentId(int id, string sessionId, string paymentIntentId)
+		public void UpdatePaymentId(int id, string paymentIntentId, string? sessionId = null)
 		{
 			var orderFromDb = _db.OrderHeaders.FirstOrDefault(u => u.Id == id);
 			if(!string.IsNullOrEmpty(sessionId))

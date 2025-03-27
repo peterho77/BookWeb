@@ -18,7 +18,7 @@ namespace Book.DataAccess.Repository
 		public IApplicationUserRepository applicationUser { get; private set; }
 		public IOrderDetailRepository orderDetail { get; private set; }
 		public IOrderHeaderRepository orderHeader { get; private set; }
-		public UnitOfWork(ApplicationDbContext db)
+        public UnitOfWork(ApplicationDbContext db)
 		{
 			_db = db;
 			category = new CategoryRepository(_db);
@@ -28,7 +28,8 @@ namespace Book.DataAccess.Repository
 			applicationUser = new ApplicationUserRepository(_db);
 			orderDetail = new OrderDetailRepository(_db);
 			orderHeader = new OrderHeaderRepository(_db);
-		}
+
+        }
 
 		public void Save()
 		{

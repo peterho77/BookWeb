@@ -1,10 +1,12 @@
-﻿using Book.DataAccess.Repository.IRepository;
+﻿using Book.DataAccess.Migrations;
+using Book.DataAccess.Repository.IRepository;
 using Book.Models;
 using Book.Models.ViewModels;
 using Book.Models.Vnpay;
 using Book.Models.Vnpay.Services;
 using Book.Utility;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Stripe.Checkout;
@@ -21,6 +23,7 @@ namespace BookWeb.Areas.Customer.Controllers
     {
         private readonly IUnitOfWork _unitOfWork;
 		private readonly IVnPayService _vnPayService;
+   
         [BindProperty]
         public ShoppingCartVM ShoppingCartVM {  get; set; }
         public CartController(IUnitOfWork unitOfWork, IVnPayService vnPayService)
@@ -126,7 +129,9 @@ namespace BookWeb.Areas.Customer.Controllers
             _unitOfWork.orderHeader.Add(ShoppingCartVM.OrderHeader);
             _unitOfWork.Save();
 
-            foreach(var cart in ShoppingCartVM.ShoppingCartList)
+            HttpContext.Session.SetInt32("orderHeaderId", ShoppingCartVM.OrderHeader.Id);
+
+            foreach (var cart in ShoppingCartVM.ShoppingCartList)
             {
                 OrderDetail orderDetail = new()
                 {
@@ -174,7 +179,7 @@ namespace BookWeb.Areas.Customer.Controllers
 
                 var service = new SessionService();
                 Session session = service.Create(options);
-                _unitOfWork.orderHeader.UpdateStripePaymentId(ShoppingCartVM.OrderHeader.Id, session.Id, session.PaymentIntentId);
+                _unitOfWork.orderHeader.UpdatePaymentId(ShoppingCartVM.OrderHeader.Id, session.Id, session.PaymentIntentId);
                 _unitOfWork.Save();
 
                 Response.Headers.Add("Location", session.Url);
@@ -182,7 +187,15 @@ namespace BookWeb.Areas.Customer.Controllers
             }
             else if(user.CompanyId.GetValueOrDefault() == 0 &&  ShoppingCartVM.OrderHeader.PaymentMethod == SD.PaymentMethod_Vnpay)
             {
-                return RedirectToAction(nameof(VnpayPaymentInfor), new {id = ShoppingCartVM.OrderHeader.Id});
+                
+
+                return RedirectToAction(nameof(CreatePaymentUrl), new PaymentInformationModel {
+                    OrderHeaderId = ShoppingCartVM.OrderHeader.Id,
+                    Name = ShoppingCartVM.OrderHeader.Name,
+                    Amount = Convert.ToDouble(ShoppingCartVM.OrderHeader.OrderTotal * 22000),
+                    OrderType = "Book Order",
+                    OrderDescription = $"chuyển khoản {SD.PaymentMethod_Vnpay}"
+                });
             }
 
 
@@ -195,15 +208,29 @@ namespace BookWeb.Areas.Customer.Controllers
 
             if (orderHeader.PaymentStatus != SD.PaymentStatusDelayedPayment)
             {
-                //this is an order by customer
-                var service = new SessionService();
-                Session session = service.Get(orderHeader.SessionId);
-
-                if (session.PaymentStatus.ToLower() == "paid")
+                if(orderHeader.PaymentStatus == SD.PaymentMethod_Stripe)
                 {
-                    _unitOfWork.orderHeader.UpdateStripePaymentId(id, session.Id, session.PaymentIntentId);
-                    _unitOfWork.orderHeader.UpdateStatus(id, SD.StatusApproved, SD.PaymentStatusApproved);
-                    _unitOfWork.Save();
+                    //this is an order by customer
+                    var service = new SessionService();
+                    Session session = service.Get(orderHeader.SessionId);
+
+                    if (session.PaymentStatus.ToLower() == "paid")
+                    {
+                        _unitOfWork.orderHeader.UpdatePaymentId(orderHeader.Id, session.PaymentIntentId, session.Id);
+                        _unitOfWork.orderHeader.UpdateStatus(orderHeader.Id, SD.StatusApproved, SD.PaymentStatusApproved);
+                        _unitOfWork.Save();
+                    }
+                    HttpContext.Session.Clear();
+                }
+                else if (orderHeader.PaymentStatus == SD.PaymentMethod_Vnpay)
+                {
+                    if (HttpContext.Session.GetString("vnpay_response_success") == "true")
+                    {
+                        HttpContext.Session.Clear();
+                        _unitOfWork.orderHeader.UpdatePaymentId(orderHeader.Id, HttpContext.Session.GetString("vnpay_response_paymentId"), null);
+                        _unitOfWork.orderHeader.UpdateStatus(orderHeader.Id, SD.StatusApproved, SD.PaymentStatusApproved);
+                        _unitOfWork.Save();
+                    }
                 }
             }
 
@@ -222,40 +249,23 @@ namespace BookWeb.Areas.Customer.Controllers
 			return Redirect(url);
 		}
 
+        
 		public IActionResult PaymentCallback()
 		{
 			var response = _vnPayService.PaymentExecute(Request.Query);
 
-			return Json(response);
-		}
+            HttpContext.Session.SetString("vnpay_response_paymentId", response.PaymentId);
+            HttpContext.Session.SetString("vnpay_response_success", response.Success.ToString());
 
-		public IActionResult VnpayPaymentInfor(int id)
-		{
+            int? id = HttpContext.Session.GetInt32("orderHeaderId");
 
-			var claimsIdentity = (ClaimsIdentity)User.Identity;
-			var userId = claimsIdentity.FindFirst(ClaimTypes.NameIdentifier).Value;
+            return RedirectToAction(nameof(OrderConfirmation), new {id = id});
 
-			IEnumerable<ShoppingCart> ShoppingCartList = _unitOfWork.shoppingCart.GetAll(u => u.ApplicationUserId == userId, includeProperties: "Product");
-            OrderHeader orderHeader = _unitOfWork.orderHeader.Get(u => u.Id == id);
+        }
 
-			foreach (var cart in ShoppingCartList)
-			{
-				cart.Price = GetPriceBasedOnQuantity(cart);
-				orderHeader.OrderTotal += cart.Price * cart.Count;
-			}
+        // Nút thêm trừ và xóa trong giỏ hàng
 
-			PaymentInformationModel model = new()
-			{
-				Amount = orderHeader.OrderTotal,
-				Name = orderHeader.Name
-			};
-
-			return View(model);
-		}
-
-		// Nút thêm trừ và xóa trong giỏ hàng
-
-		public IActionResult plus(int cartId)
+        public IActionResult plus(int cartId)
         {
             ShoppingCart cartFromDb = _unitOfWork.shoppingCart.Get(u => u.Id == cartId);
             cartFromDb.Count += 1; 

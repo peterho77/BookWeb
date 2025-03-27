@@ -163,7 +163,7 @@ namespace BookWeb.Areas.Admin.Controllers
 
             var service = new SessionService();
             Session session = service.Create(options);
-            _unitOfWork.orderHeader.UpdateStripePaymentId(OrderVM.OrderHeader.Id, session.Id, session.PaymentIntentId);
+            _unitOfWork.orderHeader.UpdatePaymentId(OrderVM.OrderHeader.Id, session.Id, session.PaymentIntentId);
             _unitOfWork.Save();
 
             Response.Headers.Add("Location", session.Url);
@@ -182,7 +182,7 @@ namespace BookWeb.Areas.Admin.Controllers
 
                 if (session.PaymentStatus.ToLower() == "paid")
                 {
-                    _unitOfWork.orderHeader.UpdateStripePaymentId(orderHeaderId, session.Id, session.PaymentIntentId);
+                    _unitOfWork.orderHeader.UpdatePaymentId(orderHeaderId, session.Id, session.PaymentIntentId);
 					_unitOfWork.orderHeader.UpdateStatus(orderHeaderId, orderHeader.OrderStatus, SD.PaymentStatusApproved);
                     _unitOfWork.Save();
                 }

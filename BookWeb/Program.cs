@@ -37,6 +37,12 @@ builder.Services.AddScoped<IVnPayService, VnPayService>();
 //Cấu hình Stripe key cho lớp StripeSettings
 builder.Services.Configure<StripeSettings>(builder.Configuration.GetSection("Stripe"));
 
+builder.Services.AddAuthentication().AddFacebook(option =>
+{
+	option.AppId = "615465121484761";
+	option.AppSecret = "6c063728e251f88fa139c32240598c9a";
+});
+
 //Thêm session vào ASP
 builder.Services.AddDistributedMemoryCache();
 builder.Services.AddSession(options =>

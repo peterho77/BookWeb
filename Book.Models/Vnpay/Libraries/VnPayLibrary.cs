@@ -27,7 +27,6 @@ namespace Book.Models.Vnpay.Libraries
 					vnPay.AddResponseData(key, value);
 				}
 			}
-
 			var orderId = Convert.ToInt64(vnPay.GetResponseData("vnp_TxnRef"));
 			var vnPayTranId = Convert.ToInt64(vnPay.GetResponseData("vnp_TransactionNo"));
 			var vnpResponseCode = vnPay.GetResponseData("vnp_ResponseCode");
