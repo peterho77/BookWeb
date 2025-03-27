@@ -62,6 +62,16 @@
 									<span asp-validation-for="OrderHeader.City" class="text-danger"></span>
 								</div>
 							</div>
+							<div class="row my-1">
+								<div class="col-3">
+									<label>Payment Method</label>
+								</div>
+								<div class="col-9">
+									<select id="paymentMethod" asp-for="OrderHeader.PaymentMethod" asp-items="@Model.PaymentMethodList" class="form-control">
+										<option value="" disabled selected>--Select--</option>
+									</select>
+								</div>
+							</div>
 						</div>
 						<div class="col-12 col-lg-5 offset-lg-1">
 							<h4 class="d-flex justify-content-between align-items-center mb-3">
@@ -76,10 +86,7 @@
 											<small class="text-muted">Quantity: @cart.Count</small>
 										</div>
 										<span class="text-muted">@cart.Price.ToString("c") * @cart.Count </span>
-									</li>
-
-
-									
+									</li>								
 								}
 								<li class="list-group-item d-flex justify-content-between bg-light">
 									<small class="text-info">Total (USD)</small>
@@ -98,13 +105,31 @@
 						</p>
 					</div>
 					<div class="col-6 col-md-4">
-						<button type="submit" value="Place Order" class="btn btn-primary form-control">Place Order</button>
+						<button type="submit" onclick="return validateInput()" class="btn btn-primary form-control">Place Order</button>
 					</div>
-					<div class="col-6 col-md-4">
+					@* <div class="col-6 col-md-4">
 						<button asp-action="VnpayPaymentInfor" type="submit" name="Vnpay" value="" class="btn btn-primary form-control">Thanh toán VNPay</button>
-					</div>
+					</div> *@
 				</div>
 			</div>
 		</div>
 	</div>
 </form>
+
+@section Scripts{
+	<partial name="_ValidationScriptsPartial" />
+
+	<script>
+		function validateInput() {
+			if (document.getElementById("paymentMethod").value == "") {
+				Swal.fire({
+					icon: "error",
+					title: "Oops...",
+					text: "Please select payment method!",
+				})
+				return false;
+			}
+			return true;
+		}
+	</script>
+}

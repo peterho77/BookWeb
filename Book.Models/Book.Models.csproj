@@ -14,4 +14,8 @@
     <PackageReference Include="VNPAY.NET" Version="8.5.0" />
   </ItemGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\Book.Utility\Book.Utility.csproj" />
+  </ItemGroup>
+
 </Project>

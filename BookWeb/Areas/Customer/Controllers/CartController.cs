@@ -6,7 +6,10 @@ using Book.Models.Vnpay.Services;
 using Book.Utility;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Rendering;
 using Stripe.Checkout;
+using System.Collections;
+using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Security.Claims;
 
@@ -18,7 +21,7 @@ namespace BookWeb.Areas.Customer.Controllers
     {
         private readonly IUnitOfWork _unitOfWork;
 		private readonly IVnPayService _vnPayService;
-		[BindProperty]
+        [BindProperty]
         public ShoppingCartVM ShoppingCartVM {  get; set; }
         public CartController(IUnitOfWork unitOfWork, IVnPayService vnPayService)
         {
@@ -33,7 +36,15 @@ namespace BookWeb.Areas.Customer.Controllers
             ShoppingCartVM = new()
             {
                 ShoppingCartList = _unitOfWork.shoppingCart.GetAll(u => u.ApplicationUserId == userId, includeProperties: "Product"),
-                OrderHeader = new()
+                OrderHeader = new(),
+                PaymentMethodList = typeof(SD).GetFields(BindingFlags.Public | BindingFlags.Static | BindingFlags.FlattenHierarchy)
+                                       .Where(f => f.Name.StartsWith("PaymentMethod_"))
+                                       .Select(f => new SelectListItem
+									   {
+										   Text = f.GetValue(null).ToString(), // Hiển thị giá trị hằng số
+										   Value = f.Name // Sử dụng tên hằng số làm giá trị
+									   })
+									   .ToList()
             };
 
             foreach(var cart in ShoppingCartVM.ShoppingCartList)
@@ -53,7 +64,16 @@ namespace BookWeb.Areas.Customer.Controllers
             ShoppingCartVM = new()
             {
                 ShoppingCartList = _unitOfWork.shoppingCart.GetAll(u => u.ApplicationUserId == userId, includeProperties: "Product"),
-                OrderHeader = new()
+                OrderHeader = new(),
+
+                PaymentMethodList = typeof(SD).GetFields(BindingFlags.Public | BindingFlags.Static | BindingFlags.FlattenHierarchy)
+                                       .Where(f => f.Name.StartsWith("PaymentMethod_"))
+                                       .Select(f => new SelectListItem
+                                       {
+                                           Text = f.GetValue(null).ToString(), // Hiển thị giá trị hằng số
+                                           Value = f.GetValue(null).ToString() // Sử dụng tên hằng số làm giá trị
+									   })
+                                       .ToList()
             };
 
             ShoppingCartVM.OrderHeader.ApplicationUser = _unitOfWork.applicationUser.Get(u => u.Id == userId);
@@ -120,10 +140,11 @@ namespace BookWeb.Areas.Customer.Controllers
 			}
 
             //Thanh toán stripe
-			if (user.CompanyId.GetValueOrDefault() == 0)
-			{
+            if (user.CompanyId.GetValueOrDefault() == 0 && ShoppingCartVM.OrderHeader.PaymentMethod == SD.PaymentMethod_Stripe)
+            {
                 //it is a regular customer account
                 //stripe logic
+
                 var domain = "https://localhost:7166/";
                 var options = new SessionCreateOptions
                 {
@@ -133,7 +154,7 @@ namespace BookWeb.Areas.Customer.Controllers
                     Mode = "payment",
                 };
 
-                foreach(var item in ShoppingCartVM.ShoppingCartList)
+                foreach (var item in ShoppingCartVM.ShoppingCartList)
                 {
                     var sessionLineItem = new SessionLineItemOptions
                     {
@@ -147,18 +168,23 @@ namespace BookWeb.Areas.Customer.Controllers
                             }
                         },
                         Quantity = item.Count
-                    }; 
+                    };
                     options.LineItems.Add(sessionLineItem);
-				}
+                }
 
-				var service = new SessionService();
-				Session session = service.Create(options);
+                var service = new SessionService();
+                Session session = service.Create(options);
                 _unitOfWork.orderHeader.UpdateStripePaymentId(ShoppingCartVM.OrderHeader.Id, session.Id, session.PaymentIntentId);
                 _unitOfWork.Save();
 
-                Response.Headers.Add("Location",session.Url);
+                Response.Headers.Add("Location", session.Url);
                 return new StatusCodeResult(303);
-			}
+            }
+            else if(user.CompanyId.GetValueOrDefault() == 0 &&  ShoppingCartVM.OrderHeader.PaymentMethod == SD.PaymentMethod_Vnpay)
+            {
+                return RedirectToAction(nameof(VnpayPaymentInfor), new {id = ShoppingCartVM.OrderHeader.Id});
+            }
+
 
 			return View(ShoppingCartVM);
 		}
@@ -203,24 +229,25 @@ namespace BookWeb.Areas.Customer.Controllers
 			return Json(response);
 		}
 
-		public IActionResult VnpayPaymentInfor()
+		public IActionResult VnpayPaymentInfor(int id)
 		{
 
 			var claimsIdentity = (ClaimsIdentity)User.Identity;
 			var userId = claimsIdentity.FindFirst(ClaimTypes.NameIdentifier).Value;
 
-			ShoppingCartVM.ShoppingCartList = _unitOfWork.shoppingCart.GetAll(u => u.ApplicationUserId == userId, includeProperties: "Product");
+			IEnumerable<ShoppingCart> ShoppingCartList = _unitOfWork.shoppingCart.GetAll(u => u.ApplicationUserId == userId, includeProperties: "Product");
+            OrderHeader orderHeader = _unitOfWork.orderHeader.Get(u => u.Id == id);
 
-			foreach (var cart in ShoppingCartVM.ShoppingCartList)
+			foreach (var cart in ShoppingCartList)
 			{
 				cart.Price = GetPriceBasedOnQuantity(cart);
-				ShoppingCartVM.OrderHeader.OrderTotal += cart.Price * cart.Count;
+				orderHeader.OrderTotal += cart.Price * cart.Count;
 			}
 
 			PaymentInformationModel model = new()
 			{
-				Amount = ShoppingCartVM.OrderHeader.OrderTotal,
-				Name = ShoppingCartVM.OrderHeader.Name
+				Amount = orderHeader.OrderTotal,
+				Name = orderHeader.Name
 			};
 
 			return View(model);
@@ -238,9 +265,10 @@ namespace BookWeb.Areas.Customer.Controllers
         }
         public IActionResult minus(int cartId)
         {
-            ShoppingCart cartFromDb = _unitOfWork.shoppingCart.Get(u => u.Id == cartId);
+            ShoppingCart cartFromDb = _unitOfWork.shoppingCart.Get(u => u.Id == cartId, tracked: true);
             if(cartFromDb.Count <= 1)
             {
+                HttpContext.Session.SetInt32(SD.SessionCart, _unitOfWork.shoppingCart.GetAll(u => u.ApplicationUserId == cartFromDb.ApplicationUserId).Count() - 1);
                 _unitOfWork.shoppingCart.Remove(cartFromDb);
             }
             else
@@ -253,7 +281,8 @@ namespace BookWeb.Areas.Customer.Controllers
         }
         public IActionResult Remove(int cartId)
         {
-            ShoppingCart cartFromDb = _unitOfWork.shoppingCart.Get(u => u.Id == cartId);
+            ShoppingCart cartFromDb = _unitOfWork.shoppingCart.Get(u => u.Id == cartId, tracked : true);
+            HttpContext.Session.SetInt32(SD.SessionCart, _unitOfWork.shoppingCart.GetAll(u => u.ApplicationUserId == cartFromDb.ApplicationUserId).Count() - 1);
             _unitOfWork.shoppingCart.Remove(cartFromDb);
             _unitOfWork.Save();
             return RedirectToAction(nameof(Index));

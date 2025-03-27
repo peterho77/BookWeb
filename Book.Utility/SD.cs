@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection.Metadata;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -25,7 +26,9 @@ namespace Book.Utility
 		public const string PaymentStatusDelayedPayment = "ApprovedForDelayedPayment";
 		public const string PaymentStatusRejected = "Rejected";
 
-		public const string PaymentMethodVNPay = "VnPay";
+		public const string PaymentMethod_Vnpay = "VnPay";
+        public const string PaymentMethod_Stripe = "Stripe";
 
-	}
+		public const string SessionCart = "SessionShoppingCart";
+    }
 }
