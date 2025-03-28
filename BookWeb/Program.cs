@@ -40,8 +40,8 @@ builder.Services.Configure<StripeSettings>(builder.Configuration.GetSection("Str
 
 builder.Services.AddAuthentication().AddFacebook(option =>
 {
-	option.AppId = SD.FB_AppId;
-	option.AppSecret = SD.FB_AppSecret;
+	option.AppId = "615465121484761";
+	option.AppSecret = "6c063728e251f88fa139c32240598c9a";
 });
 
 //Thêm session vào ASP
