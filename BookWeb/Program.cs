@@ -11,6 +11,7 @@ using Microsoft.Extensions.Options;
 using Book.Models.Vnpay.Services;
 using Book.Models.Vnpay;
 using Stripe;
+using Book.DataAccess.DbInitializer;
 
 
 var builder = WebApplication.CreateBuilder(args);
@@ -52,6 +53,9 @@ builder.Services.AddSession(options =>
 	options.Cookie.IsEssential = true;
 });
 
+//Cấu hình database ban đầu
+builder.Services.AddScoped<IDbInitializer, DbInitializer>();
+
 builder.Services.AddRazorPages();
 var app = builder.Build();
 
@@ -74,8 +78,18 @@ app.UseAuthentication();
 app.UseAuthorization();
 app.MapRazorPages();
 app.UseSession();
+SeedDatabase();
 app.MapControllerRoute(
 	name: "default",
 	pattern: "{area=Customer}/{controller=Home}/{action=Index}/{id?}");
 
 app.Run();
+
+void SeedDatabase()
+{
+	using(var scope = app.Services.CreateScope())
+	{
+		var dbInitializer = scope.ServiceProvider.GetRequiredService<IDbInitializer>();
+		dbInitializer.Initialize();
+	}
+}

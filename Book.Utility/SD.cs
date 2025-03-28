@@ -30,5 +30,7 @@ namespace Book.Utility
         public const string PaymentMethod_Stripe = "Stripe";
 
 		public const string SessionCart = "SessionShoppingCart";
+
+		
     }
 }
