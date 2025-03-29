@@ -24,13 +24,16 @@ builder.Services.AddIdentity<IdentityUser, IdentityRole>().AddEntityFrameworkSto
 
 builder.Services.ConfigureApplicationCookie(options =>
 {
-	options.LoginPath = $"/Identity/Account/Login";
-	options.LogoutPath = $"/Identity/Account/Logout";
+	//options.LoginPath = $"/Identity/Account/Login";
+	//options.LogoutPath = $"/Identity/Account/Logout";
 	options.AccessDeniedPath = $"/Identity/Account/AccessDenied";
 });
 
 builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
-builder.Services.AddScoped<IEmailSender, EmailSender>();
+
+//MailKit
+builder.Services.Configure<EmailSettings>(builder.Configuration.GetSection("EmailSettings"));
+builder.Services.AddTransient<IEmailSender, EmailSender>();
 
 // Thêm phương thức thanh toán Vnpay
 builder.Services.AddScoped<IVnPayService, VnPayService>();

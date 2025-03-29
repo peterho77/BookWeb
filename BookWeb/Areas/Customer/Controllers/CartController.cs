@@ -220,7 +220,6 @@ namespace BookWeb.Areas.Customer.Controllers
                         _unitOfWork.orderHeader.UpdateStatus(orderHeader.Id, SD.StatusApproved, SD.PaymentStatusApproved);
                         _unitOfWork.Save();
                     }
-                    HttpContext.Session.Clear();
                 }
                 else if (orderHeader.PaymentStatus == SD.PaymentMethod_Vnpay)
                 {
@@ -231,14 +230,16 @@ namespace BookWeb.Areas.Customer.Controllers
                         _unitOfWork.orderHeader.UpdateStatus(orderHeader.Id, SD.StatusApproved, SD.PaymentStatusApproved);
                         _unitOfWork.Save();
                     }
-                }
+				}
             }
 
             List<ShoppingCart> shoppingCarts = _unitOfWork.shoppingCart.GetAll(u => u.ApplicationUserId == orderHeader.ApplicationUserId).ToList();
             _unitOfWork.shoppingCart.RemoveRange(shoppingCarts);
             _unitOfWork.Save();
 
-            return View(id);
+			HttpContext.Session.Clear();
+
+			return View(id);
         }
 
         //Thanh toán Vnpay

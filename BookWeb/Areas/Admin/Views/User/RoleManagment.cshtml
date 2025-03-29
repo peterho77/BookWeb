@@ -1,0 +1,53 @@
+﻿@model RoleManagmentVM
+
+<form method="post" class="border p-3 mt-4">
+	@* <div asp-validation-summary="All"></div> *@
+	<div class="pb-2">
+		<h2 class="text-center">Manage User Role</h2>
+		<hr />
+	</div>
+	<input asp-for="ApplicationUser.Id" hidden/>
+	<div class="mb-3 p-1">
+		<label asp-for="ApplicationUser.Name"></label>
+		<input asp-for="ApplicationUser.Name" type="text" class="form-control" readonly/>
+	</div>
+	<div class="mb-3 p-1">
+		<select asp-for="ApplicationUser.Role" asp-items="@Model.RoleList" class="form-select"></select>
+	</div>
+	@{
+		var companyVisible = "display:none;";
+	}
+	@if (Model.ApplicationUser.Role == SD.Role_Company)
+	{
+		companyVisible = "display:block;";
+	}
+	<div class="mb-3 p-1">
+		<select asp-for="ApplicationUser.CompanyId" style="@companyVisible" asp-items="@Model.CompanyList" class="form-select"></select>
+	</div>
+	<div class="row">
+		<div class="col-6 col-md-3">
+			<button type="submit" class="form-control btn btn-primary">Update role</button>
+		</div>
+		<div class="col-6 col-md-3">
+			<a asp-controller="Category" asp-action="index" class="btn btn-outline-secondary form-control">Return</a>
+		</div>
+	</div>
+</form>
+
+@section Scripts
+{
+	<script src="~/lib/jquery-validation/dist/jquery.validate.min.js"></script>
+	<script src="~/lib/jquery-validation-unobtrusive/jquery.validate.unobtrusive.min.js"></script>
+
+	<script>
+		$('#ApplicationUser_Role').change(function () {
+			var selectionText = $('#ApplicationUser_Role Option:selected').text();
+			if (selectionText == 'Company') {
+				$('#ApplicationUser_CompanyId').show();
+			}
+			else {
+				$('#ApplicationUser_CompanyId').hide();
+			}
+		})
+	</script>
+}

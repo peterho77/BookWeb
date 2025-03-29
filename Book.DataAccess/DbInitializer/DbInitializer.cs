@@ -45,7 +45,14 @@ namespace Book.DataAccess.DbInitializer
                 _roleManager.CreateAsync(new IdentityRole(SD.Role_Admin)).GetAwaiter().GetResult();
                 _roleManager.CreateAsync(new IdentityRole(SD.Role_Employee)).GetAwaiter().GetResult();
 
-                //if roles are not created, then we will create admin user as well
+            }
+
+            //if roles are not created, then we will create admin user as well
+            bool isEmpty = !_db.ApplicationUsers.Any();
+
+            if (isEmpty)
+            {
+                // Bảng Users rỗng
                 _userManager.CreateAsync(new ApplicationUser
                 {
                     UserName = "hctd123@gmail.com",
@@ -57,6 +64,7 @@ namespace Book.DataAccess.DbInitializer
                 }, "Admin123@").GetAwaiter().GetResult();
                 ApplicationUser user = _db.ApplicationUsers.FirstOrDefault(u => u.Email == "hctd123@gmail.com");
                 _userManager.AddToRoleAsync(user, SD.Role_Admin).GetAwaiter().GetResult();
+                    
             }
 
             return;

@@ -127,8 +127,6 @@ namespace BookWeb.Areas.Identity.Pages.Account
 
         public async Task OnGetAsync(string returnUrl = null)
         {
-           
-
 
             Input = new()
             {
