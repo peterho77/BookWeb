@@ -239,7 +239,18 @@ namespace BookWeb.Areas.Customer.Controllers
 
 			HttpContext.Session.Clear();
 
-			return View(id);
+            OrderVM order = new()
+            {
+                OrderDetails = _unitOfWork.orderDetail.GetAll(u => u.OrderHeaderId == id, includeProperties: "Product"),
+                OrderHeader = _unitOfWork.orderHeader.Get(u => u.Id == id, includeProperties: "ApplicationUser")
+            };
+
+            return View(order);
+        }
+        [HttpPost]
+        public IActionResult OrderConfirmation(OrderVM order)
+        {
+            return View(order);
         }
 
         //Thanh toán Vnpay

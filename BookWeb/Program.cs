@@ -12,6 +12,7 @@ using Book.Models.Vnpay.Services;
 using Book.Models.Vnpay;
 using Stripe;
 using Book.DataAccess.DbInitializer;
+using Book.Models;
 
 
 var builder = WebApplication.CreateBuilder(args);
@@ -20,12 +21,19 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddControllersWithViews();
 builder.Services.AddDbContext<ApplicationDbContext>(options => options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
-builder.Services.AddIdentity<IdentityUser, IdentityRole>().AddEntityFrameworkStores<ApplicationDbContext>().AddDefaultTokenProviders();
+//Identity
+builder.Services.AddIdentity<IdentityUser, IdentityRole>(options =>
+{
+    options.User.RequireUniqueEmail = false;
+    options.SignIn.RequireConfirmedAccount = true;
+	options.Tokens.EmailConfirmationTokenProvider = TokenOptions.DefaultEmailProvider;
+}).AddEntityFrameworkStores<ApplicationDbContext>().AddDefaultTokenProviders();
+//builder.Services.AddIdentity<ApplicationUser, IdentityRole>().AddEntityFrameworkStores<ApplicationDbContext>().AddDefaultTokenProviders();
 
 builder.Services.ConfigureApplicationCookie(options =>
 {
-	//options.LoginPath = $"/Identity/Account/Login";
-	//options.LogoutPath = $"/Identity/Account/Logout";
+	options.LoginPath = $"/Identity/Account/Login";
+	options.LogoutPath = $"/Identity/Account/Logout";
 	options.AccessDeniedPath = $"/Identity/Account/AccessDenied";
 });
 

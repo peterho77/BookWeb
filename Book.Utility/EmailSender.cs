@@ -5,6 +5,7 @@ using MimeKit;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net.Mail;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -32,13 +33,20 @@ namespace Book.Utility
             emailMessage.Subject = subject;
             emailMessage.Body = new TextPart(MimeKit.Text.TextFormat.Html) { Text = HtmlMessage };
 
-            using (var client = new SmtpClient())
-            { 
-                await client.ConnectAsync(_emailSettings.SmtpServer, _emailSettings.SmtpPort, true);
-                await client.AuthenticateAsync(_emailSettings.FromEmail, _emailSettings.Password);
-                await client.SendAsync(emailMessage);
+            try
+            {
+                using (var client = new MailKit.Net.Smtp.SmtpClient())
+                {              
+                    await client.ConnectAsync(_emailSettings.SmtpServer, _emailSettings.SmtpPort, true);
+                    await client.AuthenticateAsync(_emailSettings.FromEmail, _emailSettings.Password);
+                    await client.SendAsync(emailMessage);
 
-                await client.DisconnectAsync(true);
+                    await client.DisconnectAsync(true);
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error sending email: {ex.Message}");
             }
         }
     }

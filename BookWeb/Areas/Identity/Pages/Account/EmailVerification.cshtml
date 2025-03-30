@@ -1,0 +1,18 @@
+﻿@page
+@model EmailVerificationModel
+
+<h2>Email Verification</h2>
+
+@if (Model.Email != null)
+{
+    <p>Email: <strong>@Model.Email</strong></p>
+}
+
+<form method="post">
+    <input asp-for="Email" hidden/>
+    <div class="form-group">
+        <label for="Code">Verification Code</label>
+        <input asp-for="Code" type="text" class="form-control" id="Code" name="code" required />
+    </div>
+    <button type="submit" class="btn btn-primary">Verify</button>
+</form>
