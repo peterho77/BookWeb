@@ -1,4 +1,4 @@
-﻿@model int
+﻿@model OrderVM
 
 <div class="container mt-5 mb-5">
     <div class="row d-flex justify-content-center">
@@ -9,7 +9,7 @@
                 </div>
                 <div class="invoice p-5">
                     <h5>Your order Confirmed!</h5>
-                    <span class="font-weight-bold d-block mt-4">Hello, Chris</span>
+                    <span class="font-weight-bold d-block mt-4">Hello, @Model.OrderHeader.Name</span>
                     <span>You order has been confirmed and will be shipped in next two days!</span>
                     <div class="payment border-top mt-3 mb-3 border-bottom table-responsive">
                         <table class="table table-borderless">
@@ -18,13 +18,13 @@
                                     <td>
                                         <div class="py-2">
                                             <span class="d-block text-muted">Order Date</span>
-                                            <span>12 Jan,2018</span>
+                                            <span>@Model.OrderHeader.OrderDate</span>
                                         </div>
                                     </td>
                                     <td>
                                         <div class="py-2">
                                             <span class="d-block text-muted">Order No</span>
-                                            <span>MT12332345</span>
+                                            <span>@Model.OrderHeader.Id</span>
                                         </div>
                                     </td>
                                     <td>
@@ -36,7 +36,7 @@
                                     <td>
                                         <div class="py-2">
                                             <span class="d-block text-muted">Shiping Address</span>
-                                            <span>414 Advert Avenue, NY,USA</span>
+                                            <span>@Model.OrderHeader.StreetAdress</span>
                                         </div>
                                     </td>
                                 </tr>
@@ -47,46 +47,25 @@
                     <div class="product border-bottom table-responsive">
                         <table class="table table-borderless">
                             <tbody>
-                                <tr>
-                                    <td width="20%">
-                                        <img src="https://i.imgur.com/u11K1qd.jpg" width="90">
-                                    </td>
-                                    <td width="60%">
-                                        <span class="font-weight-bold">Men's Sports cap</span>
-                                        <div class="product-qty">
-                                            <span class="d-block">Quantity:1</span>
-                                            <span>Color:Dark</span>
-                                        </div>
-                                    </td>
-                                    <td width="20%">
-                                        <div class="text-right">
-                                            <span class="font-weight-bold">$67.50</span>
-                                        </div>
-                                    </td>
-                                </tr>
-
-
-                                <tr>
-                                    <td width="20%">
-
-                                        <img src="https://i.imgur.com/SmBOua9.jpg" width="70">
-
-                                    </td>
-
-                                    <td width="60%">
-                                        <span class="font-weight-bold">Men's Collar T-shirt</span>
-                                        <div class="product-qty">
-                                            <span class="d-block">Quantity:1</span>
-                                            <span>Color:Orange</span>
-
-                                        </div>
-                                    </td>
-                                    <td width="20%">
-                                        <div class="text-right">
-                                            <span class="font-weight-bold">$77.50</span>
-                                        </div>
-                                    </td>
-                                </tr>
+                                @foreach (var detail in @Model.OrderDetails)
+                                {
+                                    <tr>
+                                        <td width="20%">
+                                            <img src="@detail.Product.ImageUrl" width="90">
+                                        </td>
+                                        <td width="60%">
+                                            <span class="font-weight-bold">@detail.Product.Title</span>
+                                            <div class="product-qty">
+                                                <span class="d-block">Quantity:@detail.Count</span>
+                                            </div>
+                                        </td>
+                                        <td width="20%">
+                                            <div class="text-right">
+                                                <span class="font-weight-bold">@detail.Price</span>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                }
                             </tbody>
 
                         </table>
@@ -112,7 +91,7 @@
                                         </td>
                                         <td>
                                             <div class="text-right">
-                                                <span>$168.50</span>
+                                                <span>@Model.OrderHeader.OrderTotal</span>
                                             </div>
                                         </td>
                                     </tr>
@@ -128,7 +107,7 @@
                                         </td>
                                         <td>
                                             <div class="text-right">
-                                                <span>$22</span>
+                                                <span></span>
                                             </div>
                                         </td>
                                     </tr>
@@ -144,7 +123,7 @@
                                         </td>
                                         <td>
                                             <div class="text-right">
-                                                <span>$7.65</span>
+                                                <span></span>
                                             </div>
                                         </td>
                                     </tr>
@@ -160,7 +139,7 @@
                                         </td>
                                         <td>
                                             <div class="text-right">
-                                                <span class="text-success">$168.50</span>
+                                                <span class="text-success"></span>
                                             </div>
                                         </td>
                                     </tr>
@@ -176,7 +155,7 @@
                                         </td>
                                         <td>
                                             <div class="text-right">
-                                                <span class="font-weight-bold">$238.50</span>
+                                                <span class="font-weight-bold">@Model.OrderHeader.OrderTotal</span>
                                             </div>
                                         </td>
                                     </tr>
@@ -197,7 +176,9 @@
 
                 <div class="d-flex justify-content-between footer p-3">
                     <span>Need Help? visit our <a href="#"> help center</a></span>
-                    <span>12 June, 2020</span>
+                    <span>
+                        @Model.OrderHeader.OrderDate
+                    </span>
                 </div>
             </div>
         </div>

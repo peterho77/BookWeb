@@ -104,12 +104,18 @@
 							@DateTime.Now.AddDays(7).ToShortDateString() - @DateTime.Now.AddDays(14).ToShortDateString()
 						</p>
 					</div>
+					@* @if(User.IsInRole(SD.Role_Company))
+					{
+						<div class="col-6 col-md-4">
+							<button asp-area="Admin" asp-controller="Order" asp-action="Index" type="submit" onclick="return validateInput()" class="btn btn-primary form-control">Place Order</button>
+						</div>						
+					} *@
+					@* else
+					{
+					} *@
 					<div class="col-6 col-md-4">
 						<button type="submit" onclick="return validateInput()" class="btn btn-primary form-control">Place Order</button>
-					</div>
-					@* <div class="col-6 col-md-4">
-						<button asp-action="VnpayPaymentInfor" type="submit" name="Vnpay" value="" class="btn btn-primary form-control">Thanh toán VNPay</button>
-					</div> *@
+					</div>						
 				</div>
 			</div>
 		</div>
@@ -118,6 +124,7 @@
 
 @section Scripts{
 	<partial name="_ValidationScriptsPartial" />
+	<partial name="_Notification" />
 
 	<script>
 		function validateInput() {

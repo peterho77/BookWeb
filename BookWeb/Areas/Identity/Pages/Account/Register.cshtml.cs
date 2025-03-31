@@ -23,6 +23,7 @@ using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.AspNetCore.WebUtilities;
 using Microsoft.Extensions.Logging;
+using Microsoft.VisualStudio.Web.CodeGenerators.Mvc.Templates.BlazorIdentity.Pages.Manage;
 
 namespace BookWeb.Areas.Identity.Pages.Account
 {
@@ -163,6 +164,13 @@ namespace BookWeb.Areas.Identity.Pages.Account
                 user.City = Input.City;
                 user.PhoneNumber = Input.PhoneNumber;
 
+                //Tạo token
+                //var code = await _userManager.GenerateEmailConfirmationTokenAsync(user);
+
+                //await _emailSender.SendEmailAsync(Input.Email, "Confirm your email",
+                //        $"Please confirm your account with the code that you have received {code}.");
+                //
+
                 var result = await _userManager.CreateAsync(user, Input.Password);
 
                 if(Input.Role == SD.Role_Company)
@@ -183,20 +191,25 @@ namespace BookWeb.Areas.Identity.Pages.Account
                         await _userManager.AddToRoleAsync(user, SD.Role_Customer);
                     }
 
-                    var userId = await _userManager.GetUserIdAsync(user);
-                    var code = await _userManager.GenerateEmailConfirmationTokenAsync(user);
-                    code = WebEncoders.Base64UrlEncode(Encoding.UTF8.GetBytes(code));
-                    var callbackUrl = Url.Page(
-                        "/Account/ConfirmEmail",
-                        pageHandler: null,
-                        values: new { area = "Identity", userId = userId, code = code, returnUrl = returnUrl },
-                        protocol: Request.Scheme);
+                    //var userId = await _userManager.GetUserIdAsync(user);
 
-                    await _emailSender.SendEmailAsync(Input.Email, "Confirm your email",
-                        $"Please confirm your account with the code that you have received {code}.");
+                    //code = WebEncoders.Base64UrlEncode(Encoding.UTF8.GetBytes(code));
+                    //var callbackUrl = Url.Page(
+                    //    "/Account/ConfirmEmail",
+                    //    pageHandler: null,
+                    //    values: new { area = "Identity", userId = userId, code = code, returnUrl = returnUrl },
+                    //    protocol: Request.Scheme);
+
+                    
 
                     if (_userManager.Options.SignIn.RequireConfirmedAccount)
                     {
+                        var identity_user = user as IdentityUser;
+                        var code = await _userManager.GenerateEmailConfirmationTokenAsync(identity_user);
+
+                        await _emailSender.SendEmailAsync(Input.Email, "Confirm your email",
+                            $"Please confirm your account with the code that you have received <b>{code}<b/>.");
+
                         return RedirectToPage("/Account/EmailVerification", new { email = Input.Email });
                     }
                     else

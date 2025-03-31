@@ -188,8 +188,19 @@ namespace BookWeb.Areas.Admin.Controllers
                 }
             }
 
-            return View(orderHeaderId);
+            OrderVM order = new()
+            {
+                OrderDetails = _unitOfWork.orderDetail.GetAll(u => u.OrderHeaderId == orderHeaderId, includeProperties: "Product"),
+                OrderHeader = _unitOfWork.orderHeader.Get(u => u.Id == orderHeaderId, includeProperties: "ApplicationUser")
+            };
+
+            return View(order);
 		}
+        [HttpPost]
+        public IActionResult PaymentConfirmation(OrderVM order)
+        {
+            return View(order);
+        }
 
         #region API CALLS
 

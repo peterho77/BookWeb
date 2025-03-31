@@ -1,18 +1,46 @@
 ﻿@page
 @model EmailVerificationModel
-
-<h2>Email Verification</h2>
-
-@if (Model.Email != null)
-{
-    <p>Email: <strong>@Model.Email</strong></p>
+@{
+    Layout = "~/Views/Shared/_AccountLayout.cshtml";
 }
 
-<form method="post">
+@* <form method="post">
     <input asp-for="Email" hidden/>
     <div class="form-group">
         <label for="Code">Verification Code</label>
         <input asp-for="Code" type="text" class="form-control" id="Code" name="code" required />
     </div>
     <button type="submit" class="btn btn-primary">Verify</button>
-</form>
+</form> *@
+
+<div class="account-container">
+    <div class="account-box">
+        <div class="text-center">
+            <h2 class="text-center mb-4">Verify Email</h2>
+            @if (Model.Email != null)
+            {
+                <p>Email: <strong>@Model.Email</strong></p>
+            }
+        </div>
+
+        <form method="post">
+            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+            <div class="form-floating mb-3">
+                <input asp-for="Email" class="form-control" autocomplete="username" aria-required="true" readonly/>
+                <label asp-for="Email" class="form-label"></label>
+            </div>
+            <div class="form-floating mb-3 col-md-12">
+                <input asp-for="Code" class="form-control" autocomplete="username" aria-required="true" placeholder="phone number" />
+                <label asp-for="Code" class="text-muted ms-2">Code</label>
+            </div>
+            <button type="submit" class="w-100 btn btn-lg btn-primary">Reset Password</button>
+            <div class="text-center mt-2">
+                <a asp-area="Customer" asp-controller="Home" asp-action="Index" class="text-decoration-none mt-3">Back</a>
+            </div>
+        </form>
+    </div>
+</div>
+
+@section Scripts{
+    <partial name="_Notification" />
+}

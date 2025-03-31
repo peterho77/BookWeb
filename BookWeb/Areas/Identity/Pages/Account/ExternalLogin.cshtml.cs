@@ -86,7 +86,7 @@ namespace BookWeb.Areas.Identity.Pages.Account
             [Required]
             [EmailAddress]
             public string Email { get; set; }
-            //Them6 thuộc tính ApplicationUser
+            //Thêm thuộc tính ApplicationUser
             [Required]
             public string Name { get; set; }
             public string? StreetAdress { get; set; }

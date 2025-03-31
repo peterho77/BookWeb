@@ -197,9 +197,23 @@ namespace BookWeb.Areas.Customer.Controllers
                     OrderDescription = $"chuyển khoản {SD.PaymentMethod_Vnpay}"
                 });
             }
+            else if(user.CompanyId.GetValueOrDefault() != 0)
+            {
+
+                TempData["success"] = "You ordered successfully. You have 30 days to get payment done after order shipped";
+
+				List<ShoppingCart> shoppingCarts = _unitOfWork.shoppingCart.GetAll(u => u.ApplicationUserId == userId).ToList();
+				_unitOfWork.shoppingCart.RemoveRange(shoppingCarts);
+				_unitOfWork.Save();
+
+				HttpContext.Session.Clear();
 
 
-			return View(ShoppingCartVM);
+                return RedirectToAction("Details", "Order", new { area = "Admin"  ,orderId = ShoppingCartVM.OrderHeader.Id});
+			}
+
+            return View(ShoppingCartVM);
+
 		}
 
         public IActionResult OrderConfirmation(int id)

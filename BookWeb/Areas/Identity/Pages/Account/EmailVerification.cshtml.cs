@@ -39,7 +39,7 @@ namespace BookWeb.Areas.Identity.Pages.Account
                 return BadRequest("Invalid payload");
             }
 
-            var user = await _userManager.FindByNameAsync(email);
+            var user = await _userManager.FindByEmailAsync(email);
 
             if (user == null)
             {
@@ -49,10 +49,8 @@ namespace BookWeb.Areas.Identity.Pages.Account
             var isVerified = await _userManager.ConfirmEmailAsync(user, code);
             if (isVerified.Succeeded)
             {
-                return RedirectToPage("RegisterConfirmation", new
-                {
-                    email = Email
-                });
+                TempData["success"] = "You verified your email successfully";
+                return RedirectToPage("/Account/Login");
             }
 
             return BadRequest("something went wrong");

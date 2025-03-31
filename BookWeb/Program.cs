@@ -26,9 +26,16 @@ builder.Services.AddIdentity<IdentityUser, IdentityRole>(options =>
 {
     options.User.RequireUniqueEmail = false;
     options.SignIn.RequireConfirmedAccount = true;
-	options.Tokens.EmailConfirmationTokenProvider = TokenOptions.DefaultEmailProvider;
+	options.SignIn.RequireConfirmedEmail = true;
+	//options.Tokens.EmailConfirmationTokenProvider = TokenOptions.DefaultEmailProvider;
+	options.Tokens.EmailConfirmationTokenProvider = TokenOptions.DefaultPhoneProvider;
 }).AddEntityFrameworkStores<ApplicationDbContext>().AddDefaultTokenProviders();
 //builder.Services.AddIdentity<ApplicationUser, IdentityRole>().AddEntityFrameworkStores<ApplicationDbContext>().AddDefaultTokenProviders();
+
+builder.Services.Configure<DataProtectionTokenProviderOptions>(options =>
+{
+    options.TokenLifespan = TimeSpan.FromMinutes(10);
+});
 
 builder.Services.ConfigureApplicationCookie(options =>
 {

@@ -24,6 +24,7 @@ namespace BookWeb.Areas.Customer.Controllers
 
         public IActionResult Index()
         {
+
             IEnumerable<Product> productList = _unitOfWork.product.GetAll().ToList();
             return View(productList);
         }

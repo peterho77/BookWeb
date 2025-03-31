@@ -17,7 +17,7 @@ namespace Book.Models
 
         public string? StreetAdress { get; set; }
         public string? City { get; set; }
-        public override string? PhoneNumber { get; set; }
+        public string? PhoneNumber { get; set; }
 
         public int? CompanyId { get; set; }
         [ForeignKey("CompanyId")]
