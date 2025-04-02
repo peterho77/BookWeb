@@ -57,10 +57,11 @@ namespace Book.DataAccess.DbInitializer
                 {
                     UserName = "hctd123@gmail.com",
                     Email = "hctd123@gmail.com",
-                    Name = "Peter Ho",  
+                    Name = "Peter Ho",
                     PhoneNumber = "5477",
                     StreetAdress = "White house",
-                    City = "Bangkok"
+                    City = "Bangkok",
+                    EmailConfirmed = true
                 }, "Admin123@").GetAwaiter().GetResult();
                 ApplicationUser user = _db.ApplicationUsers.FirstOrDefault(u => u.Email == "hctd123@gmail.com");
                 _userManager.AddToRoleAsync(user, SD.Role_Admin).GetAwaiter().GetResult();

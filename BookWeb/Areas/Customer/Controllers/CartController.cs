@@ -179,7 +179,7 @@ namespace BookWeb.Areas.Customer.Controllers
 
                 var service = new SessionService();
                 Session session = service.Create(options);
-                _unitOfWork.orderHeader.UpdatePaymentId(ShoppingCartVM.OrderHeader.Id, session.Id, session.PaymentIntentId);
+                _unitOfWork.orderHeader.UpdatePaymentId(ShoppingCartVM.OrderHeader.Id, session.PaymentIntentId, session.Id);
                 _unitOfWork.Save();
 
                 Response.Headers.Add("Location", session.Url);
@@ -222,7 +222,7 @@ namespace BookWeb.Areas.Customer.Controllers
 
             if (orderHeader.PaymentStatus != SD.PaymentStatusDelayedPayment)
             {
-                if(orderHeader.PaymentStatus == SD.PaymentMethod_Stripe)
+                if(orderHeader.PaymentMethod == SD.PaymentMethod_Stripe)
                 {
                     //this is an order by customer
                     var service = new SessionService();
@@ -235,12 +235,15 @@ namespace BookWeb.Areas.Customer.Controllers
                         _unitOfWork.Save();
                     }
                 }
-                else if (orderHeader.PaymentStatus == SD.PaymentMethod_Vnpay)
+                else if (orderHeader.PaymentMethod == SD.PaymentMethod_Vnpay)
                 {
-                    if (HttpContext.Session.GetString("vnpay_response_success") == "true")
+                    string? vnpay_check = HttpContext.Session.GetString("vnpay_response_success");
+                    string? paymentId = HttpContext.Session.GetString("vnpay_response_paymentId");
+                    string? token = HttpContext.Session.GetString("vnpay_token").Substring(0, 8);
+                    if (vnpay_check == "True")
                     {
                         HttpContext.Session.Clear();
-                        _unitOfWork.orderHeader.UpdatePaymentId(orderHeader.Id, HttpContext.Session.GetString("vnpay_response_paymentId"), null);
+                        _unitOfWork.orderHeader.UpdatePaymentId(orderHeader.Id, paymentId, token);
                         _unitOfWork.orderHeader.UpdateStatus(orderHeader.Id, SD.StatusApproved, SD.PaymentStatusApproved);
                         _unitOfWork.Save();
                     }
@@ -282,6 +285,7 @@ namespace BookWeb.Areas.Customer.Controllers
 
             HttpContext.Session.SetString("vnpay_response_paymentId", response.PaymentId);
             HttpContext.Session.SetString("vnpay_response_success", response.Success.ToString());
+            HttpContext.Session.SetString("vnpay_token", response.Token);
 
             int? id = HttpContext.Session.GetInt32("orderHeaderId");
 

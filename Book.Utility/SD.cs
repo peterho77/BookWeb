@@ -30,9 +30,5 @@ namespace Book.Utility
         public const string PaymentMethod_Stripe = "Stripe";
 
 		public const string SessionCart = "SessionShoppingCart";
-
-		public const string FB_AppId = "615465121484761";
-
-		public const string FB_AppSecret = "6c063728e251f88fa139c32240598c9a";
     }
 }

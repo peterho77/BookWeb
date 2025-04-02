@@ -90,7 +90,7 @@ namespace BookWeb.Areas.Admin.Controllers
 			{
 				orderHeader.PaymentDueDate = DateOnly.FromDateTime(DateTime.Now.AddDays(30));
 			}
-
+			_unitOfWork.orderHeader.Update(orderHeader);
             _unitOfWork.Save();
 
             TempData["success"] = "Order details shipped successfully";
